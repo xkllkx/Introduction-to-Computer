@@ -1,0 +1,10 @@
+F1=ac+ad+bc+bd+ag
+F2=abcd+abcg
+F3=ad+ae+bd+be+bc
+F4=ae+be+cde+ab
+F5=bg+ag+cg
+F6=abc+abd+eg
+F7=ad+bg+ace+bce
+F8=bd+eg
+F1 and F6
+F2 and F7 and F8

@@ -1,0 +1,877 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <limits>
+
+using namespace std; //可以不用打std
+
+// int轉char
+char int_2_char(int digit){
+    char digit_c;
+    if (digit <= 9){
+        digit_c = char(digit + 48);
+    }
+    else{
+        digit_c = char(digit + 55);
+    }
+    return digit_c;
+}
+
+// char轉int
+int char_2_int(char digit_c){
+    int digit;
+    if (digit_c == '\0'){
+        digit = 0;
+    }
+    else if (int(digit_c) >= int('0') && int(digit_c) <= int('9')){
+        digit = int(digit_c) - int('0');
+    }
+    else{
+        digit = int(digit_c) - int('A') + 10;
+    }
+    return digit;
+}
+
+// 矩陣初始化
+void array_initial(char *array){
+    int counter = 0;
+    while(array[counter] != '\0'){
+        array[counter] = '\0';
+        counter += 1;
+    }
+}
+
+// 矩陣位數計算
+int array_count(char *array){
+    int counter = 0;
+
+    while(array[counter] != '\0'){
+        counter += 1;
+    }
+    // cout << counter << endl;
+    return counter;
+}
+
+// 輸入檢查是否符合hex表示原則
+bool hex_check(char *array){
+    int counter = 0,flag = 0;
+    char input_hex[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+
+    while(array[counter] != '\0'){
+        flag = 0;
+        for(int i=0;i<16;i++){
+            if(array[counter] == input_hex[i]){
+                flag = 1;
+                break;
+                
+            }
+        }
+        if(!flag){
+            return 0;
+        }
+        counter += 1;
+    }
+    return 1;
+}
+
+// 移除矩陣數值前面多餘的0
+void front_zero_clean(char *array){
+    int counter_c = 0;
+
+    while(array[0] == '0'){
+        counter_c = 0;
+        while (array[counter_c] != '\0'){
+            array[counter_c] = array[counter_c + 1];
+            counter_c += 1;
+            // cout << array << endl;
+        }
+        array[counter_c - 1] = '\0';
+    }
+
+    if(array_count(array) == 0){
+        array[0] = '0';
+    }
+}
+
+// 比較兩矩陣代表數值的大小
+int array_compare(char *array1,char *array2,char *compare1,char *compare2){
+    int counter1 = 0,counter2 = 0,counter =  0;
+
+    // cout << "array1: " << array1 << endl;
+    // cout << "array2: " << array2 << endl;
+
+    array_initial(compare1);
+    array_initial(compare2);
+
+    while(array1[counter1] != '\0'){
+        compare1[counter1] = array1[counter1];
+        counter1 += 1;
+    }
+
+    while(array2[counter2] != '\0'){
+        compare2[counter2] = array2[counter2];
+        counter2 += 1;
+    }
+
+    front_zero_clean(compare1);
+    front_zero_clean(compare2);
+
+    // cout << "compare1: " << compare1 << endl;
+    // cout << "compare2: " << compare2 << endl;
+
+    counter1 = array_count(compare1);
+    counter2 = array_count(compare2);
+
+    if (counter1 > counter2){ // 1>2
+        return 0;
+    }
+    else if (counter1 < counter2){ // 1<2
+        return 1;
+    }
+    else{
+        while(counter <= counter1){
+            if(char_2_int(compare1[counter]) == char_2_int(compare2[counter])){
+                counter += 1;
+            }
+            else if (char_2_int(compare1[counter]) > char_2_int(compare2[counter])){
+                return 0; // 1>2
+            }
+            else{
+                return 1; // 1<2
+            }
+        }
+        return 2; // 1=2
+    }
+}
+
+// 加法函式
+void add(char *number1,char *number2,char *answer){
+    int counter1 = 0,counter2 = 0;
+    int in1 = 0,in2 = 0,sum = 0,carry = 0;
+    int shift_time = 0;
+
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+
+    counter1 = array_count(number1);
+    counter2 = array_count(number2);
+
+    //平移小的
+    if (counter2 > counter1){
+        shift_time = counter2-counter1;
+        for(int i = 0;i<shift_time;i++){
+            for(int j = counter1;j>-1;j--){
+                number1[j+1] = number1[j];
+            }
+            number1[0] = '0'; // '/0'不能顯示
+            counter1 += 1;
+        }
+    }
+    else{
+        shift_time = counter1-counter2;
+        for(int i = 0;i<shift_time;i++){
+            for(int j = counter2;j>-1;j--){
+                number2[j+1] = number2[j];
+            }
+            number2[0] = '0';
+            counter2 += 1;
+        }
+    }
+
+    // cout << number1 << endl;
+    // cout << number2 << endl; // 前面有'\0'沒辦法輸出
+
+    for(int i = counter1;i>-1;i--){
+        // cout << i << endl;
+        in1 = char_2_int(number1[i-1]);
+        in2 = char_2_int(number2[i-1]);
+
+        sum = (in1 + in2 + carry)%16;
+        carry = (in1 + in2 + carry)/16;
+
+        answer[i] = int_2_char(sum);
+    }
+
+    // cout << number1 << endl;
+    // cout << number2 << endl;
+    // cout << answer << endl;
+
+    // 除前面的0
+    front_zero_clean(answer);
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+}
+
+// 減法函式
+void sub(char *number1,char *number2,char *answer,char *compare1,char *compare2){
+    int counter1 = 0,counter2 = 0;
+    int in1 = 0,in2 = 0,result = 0,borrow = 0;
+    int shift_time = 0,flag = 0;
+
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+
+    counter1 = array_count(number1);
+    counter2 = array_count(number2);
+
+    //平移小的
+    if (counter2 > counter1){
+        shift_time = counter2-counter1;
+        for(int i = 0;i<shift_time;i++){
+            for(int j = counter1;j>-1;j--){
+                number1[j+1] = number1[j];
+            }
+            number1[0] = '0';
+            counter1 += 1;
+        }
+    }
+    else{
+        shift_time = counter1-counter2;
+        for(int i = 0;i<shift_time;i++){
+            for(int j = counter2;j>-1;j--){
+                number2[j+1] = number2[j];
+            }
+            number2[0] = '0';
+            counter2 += 1;
+        }
+    }
+
+    // cout << number1 << endl;
+    // cout << number2 << endl; // 前面有'\0'沒辦法輸出
+
+    if (array_compare(number1,number2,compare1,compare2)){
+        flag = 1;
+    }
+
+    for(int i = counter1-1;i>-1;i--){
+        // cout << i << endl;
+
+        if (flag == 1){ 
+            in1 = char_2_int(number2[i]);
+            in2 = char_2_int(number1[i]);
+        }
+        else{
+            in1 = char_2_int(number1[i]);
+            in2 = char_2_int(number2[i]);
+        }
+
+        result = in1 - in2 - borrow;
+        if (result >= 0){
+            borrow = 0;
+        }
+        else{
+            borrow = 1;
+            result = (result + borrow*16)%16;
+        }
+
+        // cout << "result: " << result << " borrow: " << borrow << endl;
+
+        answer[i] = int_2_char(result);
+    }
+
+    // cout << number1 << endl;
+    // cout << number2 << endl;
+    // cout << answer << endl;
+
+    // 除前面的0
+    front_zero_clean(answer);
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+}
+
+// 乘法函式
+void multi(char *number1,char *number2,char *mul,char *mul2,char *answer){
+    int counter1 = 0,counter2 = 0,counter1_s = 0,counter2_s = 0,counter_i = 0,counter_j = 0,counter_ans = 0;
+    int in1 = 0,in2 = 0,sum = 0,carry = 0;
+    int shift_time = 0,flag = 0;
+
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+
+    counter1 = array_count(number1);
+    counter2 = array_count(number2);
+
+    // mul、answer初始化
+    for (int i=0;i<counter1+counter2;i++){ //多留一位進位
+        mul[i] = '0';
+        mul2[i] = '0';
+    }
+
+    // cout << mul << endl;
+    // cout << mul2 << endl;
+
+    counter1_s = counter1;
+    counter2_s = counter2;
+
+    //平移小的
+    if (counter2 > counter1){
+        shift_time = counter2-counter1;
+        for(int i = 0;i<shift_time;i++){
+            for(int j = counter1_s;j>-1;j--){
+                number1[j+1] = number1[j];
+            }
+            number1[0] = '0';
+            counter1_s += 1;
+        }
+        flag = 1; // 2>1
+    }
+    else{
+        shift_time = counter1-counter2;
+        for(int i = 0;i<shift_time;i++){
+            for(int j = counter2_s;j>-1;j--){
+                number2[j+1] = number2[j];
+            }
+            number2[0] = '0';
+            counter2_s += 1;
+        }
+    }
+
+    // cout << number1 << endl;
+    // cout << number2 << endl; // 前面有'\0'沒辦法輸出
+
+    for(int i = max(counter1,counter2)-1;i>max(counter1,counter2) - min(counter1,counter2)-1;i--){
+        counter_j = 0;
+        for(int j = max(counter1,counter2)-1;j>-1;j--){
+            if (flag == 1){ // 2>1
+                in1 = char_2_int(number2[j]);
+                in2 = char_2_int(number1[i]);
+            }
+            else{
+                in1 = char_2_int(number1[j]);
+                in2 = char_2_int(number2[i]);
+            }
+
+            // cout << "i: " << i << " in2: " << in2 << " j: " << j << " in1: " << in1 << endl;
+
+            if (in2 == 0){
+                continue;
+            }
+
+            sum = (in1 * in2 + carry)%16;
+            carry = (in1 * in2 + carry)/16;
+
+            // cout << "sum: " << sum << " carry: " << carry << endl;
+
+            mul[counter1+counter2-1-counter_j-counter_i] = int_2_char(sum);
+            counter_j += 1;
+
+            if(carry != 0 && i == max(counter1,counter2) - min(counter1,counter2)){
+                mul[counter1+counter2-1-counter_j-counter_i] = int_2_char(carry);
+            }
+        }
+        counter_i += 1;
+
+        // cout << mul << endl;
+        // cout << mul2 << endl;
+
+        add(mul,mul2,answer);
+
+        // 清空mul
+        for (int i=0;i<counter1+counter2;i++){
+            mul[i] = '0';
+            mul2[i] = answer[i];
+        }
+    }
+
+    // 除前面的0
+    front_zero_clean(answer);
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+
+    // cout << number1 << endl;
+    // cout << number2 << endl;
+    // cout << answer << endl;
+
+    // mul、mul2清空
+    array_initial(mul);
+    array_initial(mul2);
+}
+
+// 加法、減法整合函式(處理負數運算)
+bool add_sub(string mode,int flag_n1,int flag_n2,char *number1,char *number2,char *mul,char *mul2,char *answer,char * compare1,char * compare2){
+    bool negative_show = 0;
+    if (mode == "1"){
+        if(flag_n1 == 0 && flag_n2 == 0){
+            add(number1,number2,answer);
+        }
+        else if(flag_n1 == 0 && flag_n2 == 1){
+            if (array_compare(number1,number2,compare1,compare2)){ //1<2 1-2
+                sub(number2,number1,answer,compare1,compare2);
+                negative_show = 1;
+            }
+            else{
+                sub(number1,number2,answer,compare1,compare2);
+            }
+        }
+        else if(flag_n1 == 1 && flag_n2 == 0){
+            if (!array_compare(number1,number2,compare1,compare2)){ //1>2 1-2
+                sub(number1,number2,answer,compare1,compare2);
+                negative_show = 1;
+            }
+            else{
+                sub(number2,number1,answer,compare1,compare2);
+            }
+        }
+        else{
+            add(number1,number2,answer);
+            negative_show = 1;
+        }
+    }
+    else{
+        if(flag_n1 == 0 && flag_n2 == 0){
+            if (array_compare(number1,number2,compare1,compare2)){ //1<2 1-2
+                sub(number2,number1,answer,compare1,compare2);
+                negative_show = 1;
+            }
+            else{
+                sub(number1,number2,answer,compare1,compare2);
+            }
+        }
+        else if(flag_n1 == 0 && flag_n2 == 1){
+            add(number1,number2,answer);
+        }
+        else if(flag_n1 == 1 && flag_n2 == 0){
+            add(number1,number2,answer);
+            negative_show = 1;
+        }
+        else{
+            if (!array_compare(number1,number2,compare1,compare2)){ //1>2 1-2
+                sub(number1,number2,answer,compare1,compare2);
+                negative_show = 1;
+            }
+            else{
+                sub(number2,number1,answer,compare1,compare2);
+            }
+        }
+    }
+
+    return negative_show;
+}
+
+// 除法函式
+void div(char *number1,char *number2,char *mul,char *mul2,char *dividend,char *divisor,char *quotient,char* remainder,char *answer,char *compare1,char *compare2){
+    int counter1 = 0,counter2 = 0,counter_quotient = 0,counter_divisor = 0,counter_ans = 0,pointer = 0,counter_remainder = 0,counter_remainder_write = 0;
+    int in1 = 0,in2 = 0;
+    int shift_time = 0,flag = 0;
+
+    front_zero_clean(number1);
+    front_zero_clean(number2);
+
+    counter1 = array_count(number1);
+    counter2 = array_count(number2);
+
+    // 避免除0
+    if(number2[0] == '0' && counter2 == 1){
+        cout << "It can't be divided by 0.\n" << endl;
+        return;
+    }
+
+    // cout << number1 << endl;
+    // cout << number2 << endl; // 前面有'\0'沒辦法輸出
+    
+    // answer初始化
+    for(int i = 0;i<counter1;i++){
+        answer[i] = '0';
+    }
+    counter_ans += (counter2-1);
+
+    while(1){
+        // 取被除數
+        // cout << "1 pointer: " << pointer << endl;
+        counter_divisor = 0;
+        for(int j = pointer;j<counter_ans+1;j++){
+            divisor[counter_divisor] = number1[j];
+            counter_divisor += 1;
+        }
+
+        // cout << "1 divisor: " << divisor << endl;
+
+        while(array_compare(divisor,number2,compare1,compare2) == 1){ // divisor < number2 => 1
+            divisor[counter_divisor] = number1[pointer+counter_divisor];
+            counter_divisor += 1;
+
+            answer[counter_ans] = '0';
+            counter_ans += 1;
+        }
+        
+        // cout << "counter_divisor: " << counter_divisor << endl;
+        // cout << "1 counter_ans: " << counter_ans << endl;
+        // cout << "2 divisor: " << divisor << endl;
+
+        counter_quotient = 1;
+        while(array_compare(dividend,divisor,compare1,compare2)){ // dividend <= divisor => 1、2
+            quotient[0] = int_2_char(counter_quotient);
+
+            multi(number2,quotient,mul,mul2,dividend);
+            counter_quotient += 1;
+
+            // cout << "dividend: " << dividend << endl;
+            // cout << "counter_quotient: " << counter_quotient << endl;
+        }
+
+        quotient[0] = int_2_char(counter_quotient-2); // 商
+
+        multi(number2,quotient,mul,mul2,dividend);
+        sub(divisor,dividend,remainder,compare1,compare2);
+
+        // cout << "dividend: " << dividend << endl;
+        // cout << "quotient: " << quotient << endl;
+        // cout << "remainder: " << remainder << endl;
+
+        answer[counter_ans] = quotient[0];
+        counter_ans += 1;
+        // cout << "answer: " << answer << endl;
+        // cout << "2 counter_ans: " << counter_ans << endl;
+
+        counter_remainder = array_count(remainder);
+        // cout << "counter_remainder: " << counter_remainder << endl;
+
+        counter_remainder_write = 0;
+        for(int j=0;j<counter_divisor;j++){
+            if(j < counter_divisor-counter_remainder){
+                number1[pointer+j] = '0';
+            }
+            else{
+                number1[pointer+j] = remainder[counter_remainder_write];
+                counter_remainder_write += 1;
+            }
+        }
+        // cout << "number1: " << number1 << endl;
+        
+        pointer += 1;
+        // cout << "2 pointer: " << pointer << endl;
+
+        if(array_compare(number1,number2,compare1,compare2)){
+            break;
+        }
+
+        // 餘數、除數、被除數清空
+        array_initial(dividend);
+        array_initial(divisor);
+        array_initial(remainder);
+    }
+
+    // 除前面的0
+    front_zero_clean(answer);
+    front_zero_clean(number2);
+    front_zero_clean(number1);
+}
+
+int main(){
+    string mode;
+    int flag_n1 = 0,flag_n2 = 0;
+
+    char number1[101] = {'\0'}; // 100個數字+'\0'
+    char number2[101] = {'\0'};
+    char answer[201] = {'\0'};
+
+    char mul[201] = {'\0'};
+    char mul2[201] = {'\0'};
+
+    char dividend[101] = {'\0'};
+    char divisor[101] = {'\0'};
+    char quotient[101] = {'\0'};
+    char remainder[101] = {'\0'};
+
+    char compare1[101] = {'\0'};
+    char compare2[101] = {'\0'};
+
+    string number1_s;
+    string number2_s;
+
+    while(1){
+        cout << "----Welcome to big number calculator----\nPlease choose the function\n0. Exit\n1. Addition\n2. Subtraction\n3. Multiplication\n4. Division\n--------------------------" << endl;
+        cin >> mode;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        //初始化
+        array_initial(number1);
+        array_initial(number2);
+        array_initial(answer);
+
+        array_initial(mul);
+        array_initial(mul2);
+
+        array_initial(dividend);
+        array_initial(divisor);
+        array_initial(quotient);
+        array_initial(remainder);
+
+        array_initial(compare1);
+        array_initial(compare2);
+
+        if (mode == "1"){  //加法
+            cout << "\n----Now for Addition----\nPlease enter the two numbers(hex).\n";
+            while(1){
+                getline(cin,number1_s);
+                getline(cin,number2_s);
+
+                array_initial(number1);
+                array_initial(number2);
+
+                if(number1_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    //負數輸入
+                    if(number1_s[0] == '-'){
+                        for(int i=0;i<number1_s.length();i++){
+                            number1[i] = number1_s[i+1];
+                        }
+                        flag_n1 = 1;
+                    }
+                    else{
+                        for(int i=0;i<number1_s.length();i++){
+                            number1[i] = number1_s[i];
+                        }
+                        flag_n1 = 0;
+                    }
+
+                    if(!(hex_check(number1))){
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+
+                if(number2_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    //負數輸入
+                    if(number2_s[0] == '-'){
+                        for(int i=0;i<number2_s.length();i++){
+                            number2[i] = number2_s[i+1];
+                        }
+                        flag_n2 = 1;
+                    }
+                    else{
+                        for(int i=0;i<number2_s.length();i++){
+                            number2[i] = number2_s[i];
+                        }
+                        flag_n2 = 0;
+                    }
+
+                    if(hex_check(number2)){
+                        break;
+                    }
+                    else{
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+            }
+
+            // number1:A B C
+            //      th:0 1 2
+
+            cout << "Result(hex): ";
+            if (add_sub(mode,flag_n1,flag_n2,number1,number2,mul,mul2,answer,compare1,compare2) && answer[0] != '0'){
+                cout << "-";
+            }
+            cout << answer << endl;
+            cout << endl;
+        }
+        else if (mode == "2"){ //減法
+            cout << "\n----Now for Subtraction----\nPlease enter the two numbers(hex).\n";
+            while(1){
+                getline(cin,number1_s);
+                getline(cin,number2_s);
+
+                array_initial(number1);
+                array_initial(number2);
+
+                if(number1_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    //負數輸入
+                    if(number1_s[0] == '-'){
+                        for(int i=0;i<number1_s.length();i++){
+                            number1[i] = number1_s[i+1];
+                        }
+                        flag_n1 = 1;
+                    }
+                    else{
+                        for(int i=0;i<number1_s.length();i++){
+                            number1[i] = number1_s[i];
+                        }
+                        flag_n1 = 0;
+                    }
+
+                    if(!(hex_check(number1))){
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+
+                if(number2_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    //負數輸入
+                    if(number2_s[0] == '-'){
+                        for(int i=0;i<number2_s.length();i++){
+                            number2[i] = number2_s[i+1];
+                        }
+                        flag_n2 = 1;
+                    }
+                    else{
+                        for(int i=0;i<number2_s.length();i++){
+                            number2[i] = number2_s[i];
+                        }
+                        flag_n2 = 0;
+                    }
+
+                    if(hex_check(number2)){
+                        break;
+                    }
+                    else{
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+            }
+
+            cout << "Result(hex): ";
+            if (add_sub(mode,flag_n1,flag_n2,number1,number2,mul,mul2,answer,compare1,compare2) && answer[0] != '0'){
+                cout << "-";
+            }
+            cout << answer << endl;
+            cout << endl;
+        }
+        else if (mode == "3"){ //乘法
+            cout << "\n----Now for Multiplication----\nPlease enter the two numbers(hex).\n";
+            while(1){
+                getline(cin,number1_s);
+                getline(cin,number2_s);
+
+                array_initial(number1);
+                array_initial(number2);
+
+                if(number1_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    //負數輸入
+                    if(number1_s[0] == '-'){
+                        for(int i=0;i<number1_s.length();i++){
+                            number1[i] = number1_s[i+1];
+                        }
+                        flag_n1 = 1;
+                    }
+                    else{
+                        for(int i=0;i<number1_s.length();i++){
+                            number1[i] = number1_s[i];
+                        }
+                        flag_n1 = 0;
+                    }
+
+                    if(!(hex_check(number1))){
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+
+                if(number2_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    //負數輸入
+                    if(number2_s[0] == '-'){
+                        for(int i=0;i<number2_s.length();i++){
+                            number2[i] = number2_s[i+1];
+                        }
+                        flag_n2 = 1;
+                    }
+                    else{
+                        for(int i=0;i<number2_s.length();i++){
+                            number2[i] = number2_s[i];
+                        }
+                        flag_n2 = 0;
+                    }
+
+                    if(hex_check(number2)){
+                        break;
+                    }
+                    else{
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+            }
+
+            multi(number1,number2,mul,mul2,answer);
+            cout << "Result(hex): ";
+            if (flag_n1 ^ flag_n2 && answer[0] != '0'){
+                cout << "-";
+            }
+            cout << answer << endl;
+            cout << endl;
+        }
+        else if (mode == "4"){ //除法
+            cout << "\n----Now for Division----\nPlease enter the two numbers(hex).\n";
+            while(1){
+                getline(cin,number1_s);
+                getline(cin,number2_s);
+
+                array_initial(number1);
+                array_initial(number2);
+
+                if(number1_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    for(int i=0;i<number1_s.length();i++){
+                        number1[i] = number1_s[i];
+                    }
+
+                    if(!(hex_check(number1))){
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+
+                if(number2_s.length() > 100){
+                    cout << "Please enter the two numbers(hex) again." << endl;
+                    continue;
+                }
+                else{
+                    for(int i=0;i<number2_s.length();i++){
+                        number2[i] = number2_s[i];
+                    }
+
+                    if(hex_check(number2)){
+                        break;
+                    }
+                    else{
+                        cout << "Please enter the two numbers(hex) again." << endl;
+                        continue;
+                    }
+                }
+            }
+
+            div(number1,number2,mul,mul2,dividend,divisor,quotient,remainder,answer,compare1,compare2);
+
+            if(!(number2[0] == '0' && array_count(number2) == 1)){
+                cout << "Result(hex): " << answer << endl;
+                cout << "Remainder(hex): " << number1 << endl;
+                cout << endl;
+            }
+        }
+        else if (mode == "0"){
+            cout << "Good bye!\n\n";
+            return 0;
+        }
+        else{
+            cout << "Error! Please try again.\n\n";
+            continue;
+        }
+    }
+}

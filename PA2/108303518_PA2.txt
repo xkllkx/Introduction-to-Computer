@@ -1,0 +1,264 @@
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <math.h>
+#include <string.h>
+
+using namespace std; //可以不用打std
+
+string state_set(int ring_num,int ring,string initial_state){
+    string th,state;
+    if (ring <= ring_num){
+        switch(ring){
+            case 1:
+                th = "st";
+                break;
+            case 2:
+                th = "nd";
+                break;
+            case 3:
+                th = "rd";
+                break;
+            default:
+                th = "th";
+                break;
+        }
+
+        cout << "What the state of " << ring << th << " rings?" << endl;
+        cin >> state;
+
+        initial_state = initial_state + state;
+        // cout << initial_state << endl;
+
+        ring += 1;
+        return state_set(ring_num,ring,initial_state);
+    }
+    else{
+        return initial_state;
+    }
+}
+
+int str2dec(int ring,string initial_state,int state_num){
+    if (ring > 0){
+        state_num = state_num + (initial_state[ring-1]-'0')*pow(2,ring-1);
+        // cout << state_num << endl;
+        
+        ring -= 1;
+        return str2dec(ring,initial_state,state_num);
+    }
+    else{
+        return state_num;
+    }
+}
+
+void array_show(string array,char* initial_state_array,int ring_num,int repeat){
+    array += initial_state_array[ring_num-repeat-1];
+    repeat += 1;
+    if (ring_num-repeat != 0){
+        return array_show(array,initial_state_array,ring_num,repeat);
+    }
+    else{
+        cout << array << endl;
+    }
+}
+
+string array_merge(string array,char* initial_state_array,int ring_num,int repeat){
+    array += initial_state_array[ring_num-repeat-1];
+    repeat += 1;
+    if (ring_num-repeat != 0){
+        return array_merge(array,initial_state_array,ring_num,repeat);
+    }
+    else{
+        return array;
+    }
+}
+
+void array_generate(string initial_state,char* initial_state_array,int ring_num,int ring){
+    initial_state_array[ring_num-ring-1] = initial_state[ring]; 
+    ring += 1;
+
+    if (ring_num-ring != 0){
+        return array_generate(initial_state,initial_state_array,ring_num,ring);
+    }
+}
+
+void array_copy(char* initial_state_array_r,char* initial_state_array,int ring_num,int ring){
+    initial_state_array_r[ring] = initial_state_array[ring];
+    ring += 1;
+
+    if (ring < ring_num){
+        return array_copy(initial_state_array_r,initial_state_array,ring_num,ring);
+    }
+}
+
+bool array_check(char* initial_state_array,int ring_num,int repeat){
+    if (initial_state_array[repeat] != '0'){
+        return 0;
+    }
+    else{
+        repeat += 1;
+    }
+
+    if (repeat < ring_num){
+        return array_check(initial_state_array,ring_num,repeat);
+    }
+    else{
+        return 1;
+    }
+}
+
+void R_rule_try(char* initial_state_array_r){
+    if (initial_state_array_r[0] == '0'){
+        initial_state_array_r[0] = '1';
+    }
+    else{
+        initial_state_array_r[0] = '0';
+    }
+}
+
+void S_rule_try(char* initial_state_array_s,int ring){
+    if (initial_state_array_s[ring] == '1'){
+        if (initial_state_array_s[ring+1] == '0'){
+            initial_state_array_s[ring+1] = '1';
+        }
+        else{
+            initial_state_array_s[ring+1] = '0';
+        }
+    }
+    else{
+        ring += 1;
+        return S_rule_try(initial_state_array_s,ring);
+    }
+}
+
+int R_S_rule(int R_S_switch,int R_S_switch_num,char* initial_state_array,int ring,int ring_num,string array,int repeat){
+    string motion,th;
+    if (array_check(initial_state_array,ring_num,repeat)){
+        return R_S_switch_num;
+    }
+
+    if (R_S_switch == 0){ //R_rule
+        if (initial_state_array[0] == '1'){
+            motion = "down";
+            initial_state_array[0] = '0';
+        }
+        else{
+            motion = "on";
+            initial_state_array[0] = '1';
+        }
+
+        cout << "!! Turn the " << ring_num << "th ring " << motion << " !!" << endl;
+        cout << "The rings state of " << ring_num << "-Linked Ring is: " << array_merge(array,initial_state_array,ring_num,repeat) << endl;
+        ring = 0;
+        R_S_switch = 1;
+        R_S_switch_num += 1;
+        return R_S_rule(R_S_switch,R_S_switch_num,initial_state_array,ring,ring_num,array,repeat);
+    }
+    else{ //S_rule
+        if (initial_state_array[ring] == '1'){
+            if (initial_state_array[ring+1] == '0'){
+                motion = "on";
+                initial_state_array[ring+1] = '1';
+            }
+            else{
+                motion = "down";
+                initial_state_array[ring+1] = '0';
+            }
+
+            switch(ring_num-ring-1){
+                case 1:
+                    th = "st";
+                    break;
+                case 2:
+                    th = "nd";
+                    break;
+                case 3:
+                    th = "rd";
+                    break;
+                default:
+                    th = "th";
+                    break;
+            }
+
+            cout << "!! Turn the " << ring_num-ring-1 << th << " ring " << motion << " !!" << endl;
+            cout << "The rings state of " << ring_num << "-Linked Ring is: " << array_merge(array,initial_state_array,ring_num,repeat) << endl;
+            R_S_switch = 0;
+            R_S_switch_num += 1;
+            return R_S_rule(R_S_switch,R_S_switch_num,initial_state_array,ring,ring_num,array,repeat);
+        }
+        else{
+            ring += 1;
+            return R_S_rule(R_S_switch,R_S_switch_num,initial_state_array,ring,ring_num,array,repeat);
+        }
+    }
+}
+
+int main(){
+    int ring_num = 0,ring = 1,state_num=0,repeat=0;
+    string initial_state,array;
+
+    cout << "Welcome to play X-Linked Ring!" << endl;
+    cout << "How many X-Linked Ring do you want to solve?" << endl;
+    cin >> ring_num;
+
+    cout << "\nWhat the " << ring_num << "-Linked Ring look like?" << endl;
+    cout << "Please enter the rings state from inside to outside." << endl;
+    cout << "If the ring is on the sword, please input 1. Otherwise, please enter 0." << endl; //由內到外
+
+    // initial_state = state_set(ring_num,ring,initial_state);
+    initial_state = state_set(ring_num,1,initial_state);
+    // cout << initial_state << endl;
+
+    // ring = ring_num;
+    // state_num = str2dec(ring,initial_state,state_num);
+    state_num = str2dec(ring_num,initial_state,state_num);
+
+    char initial_state_array[ring_num],initial_state_array_r[ring_num],initial_state_array_s[ring_num];
+
+    // ring = 0;
+    // array_generate(initial_state,initial_state_array,ring_num,ring);
+    // array_generate(initial_state,initial_state_array_r,ring_num,ring);
+    // array_generate(initial_state,initial_state_array_s,ring_num,ring);
+    array_generate(initial_state,initial_state_array,ring_num,0);
+    array_generate(initial_state,initial_state_array_r,ring_num,0);
+    array_generate(initial_state,initial_state_array_s,ring_num,0);
+
+    // array_copy(initial_state_array_r,initial_state_array,ring_num,ring);
+    // array_copy(initial_state_array_s,initial_state_array,ring_num,ring);
+    // initial_state.copy(initial_state_array_r,sizeof initial_state);
+    // initial_state.copy(initial_state_array_s,sizeof initial_state);
+
+    // array_show(array,initial_state_array_r,ring_num,repeat);
+    // array_show(array,initial_state_array_s,ring_num,repeat);
+
+    //state: 1 0 1 0
+    //order: 3 2 1 0
+    //th :   1 2 3 4
+
+    cout << "\nThe rings state of " << ring_num << "-Linked Ring is: " << initial_state << endl;
+
+    R_rule_try(initial_state_array_r);
+    // S_rule_try(initial_state_array_s,ring);
+    S_rule_try(initial_state_array_s,0);
+
+    cout << "If run R-rule once, the rings state of " << ring_num << "-Linked Ring is: " << array_merge(array,initial_state_array_r,ring_num,repeat) << endl;
+    cout << "If run S-rule once, the rings state of " << ring_num << "-Linked Ring is: " << array_merge(array,initial_state_array_s,ring_num,repeat) << endl;
+
+    cout << "\nLet's start to solve the " << ring_num << "-Linked Ring." << endl;
+
+    int R_S_switch = 0,R_S_switch_num=0;
+
+    if (state_num % 2 == 0){ //R
+        cout << "Start with R-rule !!" << endl;
+        R_S_switch = 0;
+        R_S_switch_num = R_S_rule(R_S_switch,R_S_switch_num,initial_state_array,ring,ring_num,array,repeat);
+    }
+    else{ //S
+        cout << "Start with S-rule !!" << endl;
+        R_S_switch = 1;
+        R_S_switch_num = R_S_rule(R_S_switch,R_S_switch_num,initial_state_array,ring,ring_num,array,repeat);
+    }
+
+    cout << "\nThe " << ring_num << "-Linked Ring is solved in " << R_S_switch_num << " steps." << endl;
+    cout << "Thanks for using!! Goodbye ~"<< endl;
+}

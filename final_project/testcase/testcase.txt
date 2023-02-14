@@ -1,0 +1,4 @@
+./checker testcase1_example testcase1_example.out
+./checker testcase2_example testcase2_example.out
+./checker testcase1_bonus_example testcase1_bonus_example.out
+./checker testcase2_bonus_example testcase2_bonus_example.out
